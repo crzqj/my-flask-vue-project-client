@@ -20,7 +20,7 @@
               <th></th>
             </tr>
           </thead>
-          <tbody>
+          <tbody v-if="loaded">
             <tr v-for="(book, index) in result?.books" :key="index">
               <td>{{ book.title }}</td>
               <td>{{ book.author }}</td>
@@ -35,6 +35,11 @@
                 </div>
               </td>
             </tr>
+          </tbody>
+          <tbody v-if="loading">
+            <div class="spinner-border text-primary" role="status">
+              <span class="visually-hidden">Loading...</span>
+            </div>
           </tbody>
         </table>
       </div>
@@ -162,8 +167,7 @@ setup() {
       addBookForm.value = { title: '', author: '', read: false };
     };
     const handleAddReset = () => {
-      // 重置添加书籍模态框并清空表单
-      activeAddBookModal.value = false;
+      // 清空表单
       initForm();
     };
     // 切换添加书籍模态框的状态
