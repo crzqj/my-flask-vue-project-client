@@ -4,6 +4,7 @@
       <div class="col-sm-10">
         <h1>Books</h1>
         <hr><br><br>
+        <AlertInfo />
         <button
           type="button"
           class="btn btn-success btn-sm"
@@ -120,10 +121,11 @@
 
 
   
-<script lang="ts">
+<script lang="ts" setup>
 import { defineComponent, ref, onMounted } from 'vue';
 import useURLLoader from '../hooks/useURLLoader';
 import axios from 'axios';
+import AlertInfo from '../components/AlertInfo.vue';
 
 interface BookResult {
   books: Array<{
@@ -139,8 +141,8 @@ interface Payload {
   read: boolean;
 }
 
-export default defineComponent({
-setup() {
+// export default defineComponent({
+// setup() {
     // 使用ref创建响应式数据
     const activeAddBookModal = ref(false);
     const addBookForm = ref({
@@ -150,7 +152,7 @@ setup() {
     });
     // 初始化自定义钩子useURLLoader
     const { result, loading, loaded, error, fetchData} = useURLLoader<BookResult>('http://10.15.101.99:5000/books');
-
+    
     // 使用axios发送POST请求添加书籍
     const addBook = (payload: Payload) => {
       const path = 'http://10.15.101.99:5000/books';
@@ -187,19 +189,20 @@ setup() {
       initForm();
     };
     
-    return {
-        result,
-        loading,
-        loaded,
-        error,       
-        activeAddBookModal,
-        addBookForm,
-        addBook,
-        handleAddSubmit,
-        handleAddReset,
-        initForm,
-        toggleAddBookModal,
-    };
-},
-});
+    // return {
+    //     result,
+    //     loading,
+    //     loaded,
+    //     error,       
+    //     activeAddBookModal,
+    //     addBookForm,
+    //     addBook,
+    //     handleAddSubmit,
+    //     handleAddReset,
+    //     // initForm,
+    //     toggleAddBookModal,
+    //     AlertInfo,
+    // };
+// },
+// });
 </script>
