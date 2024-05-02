@@ -1,6 +1,6 @@
 import { createRouter, createWebHistory } from 'vue-router'
 import PingPong from '../components/PingPong.vue'
-import BookList from '../components/BookList.vue'
+import BookList from '../components/BooksList.vue'
 
 const router = createRouter({
   history: createWebHistory(),
