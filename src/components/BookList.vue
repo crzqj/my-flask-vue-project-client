@@ -4,7 +4,7 @@
       <div class="col-sm-10">
         <h1>Books</h1>
         <hr><br><br>
-        <AlertInfo />
+        <AlertInfo :message="message" v-if="showMessage"></AlertInfo>
         <button
           type="button"
           class="btn btn-success btn-sm"
@@ -31,7 +31,7 @@
               </td>
               <td>
                 <div class="btn-group" role="group">
-                  <button type="button" class="btn btn-warning btn-sm">Update</button>
+                  <button type="button" class="btn btn-warning btn-sm" @click="toggleEditBookModal(book)">Update</button>
                   <button type="button" class="btn btn-danger btn-sm">Delete</button>
                 </div>
               </td>
@@ -114,6 +114,75 @@
       </div>
     </div>
     <div v-if="activeAddBookModal" class="modal-backdrop fade show"></div>
+
+    <!-- edit book modal -->
+<div
+  ref="editBookModal"
+  class="modal fade"
+  :class="{ show: activeEditBookModal, 'd-block': activeEditBookModal }"
+  tabindex="-1"
+  role="dialog">
+  <div class="modal-dialog" role="document">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title">Update</h5>
+        <button
+          type="button"
+          class="close"
+          data-dismiss="modal"
+          aria-label="Close"
+          @click="toggleEditBookModal">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div class="modal-body">
+        <form>
+          <div class="mb-3">
+            <label for="editBookTitle" class="form-label">Title:</label>
+            <input
+              type="text"
+              class="form-control"
+              id="editBookTitle"
+              v-model="editBookForm.title"
+              placeholder="Enter title">
+          </div>
+          <div class="mb-3">
+            <label for="editBookAuthor" class="form-label">Author:</label>
+            <input
+              type="text"
+              class="form-control"
+              id="editBookAuthor"
+              v-model="editBookForm.author"
+              placeholder="Enter author">
+          </div>
+          <div class="mb-3 form-check">
+            <input
+              type="checkbox"
+              class="form-check-input"
+              id="editBookRead"
+              v-model="editBookForm.read">
+            <label class="form-check-label" for="editBookRead">Read?</label>
+          </div>
+          <div class="btn-group" role="group">
+            <button
+              type="button"
+              class="btn btn-primary btn-sm"
+              @click="handleEditSubmit">
+              Submit
+            </button>
+            <button
+              type="button"
+              class="btn btn-danger btn-sm"
+              @click="handleEditCancel">
+              Cancel
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
+<div v-if="activeEditBookModal" class="modal-backdrop fade show"></div>
   </div>
 </template>
 
@@ -127,11 +196,19 @@ import useURLLoader from '../hooks/useURLLoader';
 import axios from 'axios';
 import AlertInfo from '../components/AlertInfo.vue';
 
+interface Book {
+  author: string;
+  read: boolean;
+  title: string;
+  id: string;
+}
+
 interface BookResult {
   books: Array<{
     author: string;
     read: boolean;
     title: string;
+    id: string;
   }>;
   status: string;
 }
@@ -145,11 +222,20 @@ interface Payload {
 // setup() {
     // 使用ref创建响应式数据
     const activeAddBookModal = ref(false);
+    const activeEditBookModal = ref(false);
     const addBookForm = ref({
       title: '',
       author: '',
-      read: false, // 假设read是一个布尔值而非数组
+      read: false,
     });
+    const editBookForm = ref({
+      id: '',
+      title: '',
+      author: '',
+      read: false,
+    })
+    const showMessage = ref(false);
+    const message = ref('Hello World!');
     // 初始化自定义钩子useURLLoader
     const { result, loading, loaded, error, fetchData} = useURLLoader<BookResult>('http://10.15.101.99:5000/books');
     
@@ -159,8 +245,38 @@ interface Payload {
       axios.post(path, payload)
         .then(() => {
           fetchData();   // 添加书籍后，重新获取数据
+          message.value = 'Add book successfully!';
+          showMessage.value = true;
+          //设置一个3秒的延迟后关闭消息框
+          setTimeout(() => {
+            showMessage.value = false;
+            message.value = '';
+            }, 3000);
         })
         .catch((error) => {
+          message.value = error.message;
+          showMessage.value = true;
+          console.error(error);
+        });
+    };
+
+    // 更新书籍
+    const updateBook = (payload: Payload, bookID: string) => {
+      const path = 'http://10.15.101.99:5000/books/'+bookID;
+      axios.put(path, payload)
+        .then(() => {
+          fetchData();   // 更新书籍后，重新获取数据
+          message.value = 'update book successfully!';
+          showMessage.value = true;
+          //设置一个3秒的延迟后关闭消息框
+          setTimeout(() => {
+            showMessage.value = false;
+            message.value = '';
+            }, 3000);
+        })
+        .catch((error) => {
+          message.value = error.message;
+          showMessage.value = true;
           console.error(error);
         });
     };
@@ -189,6 +305,33 @@ interface Payload {
       initForm();
     };
     
+    // 处理编辑书籍表单的提交
+    const handleEditSubmit = () => {
+      const payload = {
+        title: editBookForm.value.title,
+        author: editBookForm.value.author,
+        read: editBookForm.value.read,
+      };
+      updateBook(payload, editBookForm.value.id);
+      activeEditBookModal.value = false;
+    };
+
+    const handleEditCancel = () => {
+      activeEditBookModal.value = false;
+    }
+
+    const toggleEditBookModal= (book: Book) => {
+      if (book) {
+        editBookForm.value = {
+          id: book.id,
+          title: book.title,
+          author: book.author,
+          read: book.read,
+      };
+      activeEditBookModal.value = !activeEditBookModal.value;
+    }
+  }
+        
     // return {
     //     result,
     //     loading,
