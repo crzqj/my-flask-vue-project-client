@@ -316,10 +316,10 @@ const showMessageTool = (messageinfo: string) => {
     showMessage.value = false;
     message.value = "";
   }, 3000);
-}
+};
 
 // -----------处理addbook的逻辑-----------------
-// 切换添加书籍模态框的状态
+// 打开添加框
 const toggleAddBookModal = () => {
   activeAddBookModal.value = !activeAddBookModal.value;
 };
@@ -361,6 +361,33 @@ const handleAddSubmit = () => {
 };
 
 // -----------处理updatebook的逻辑-----------------
+// 打开编辑框，并把要编辑的书籍信息存入editBookForm
+const toggleEditBookModal = (book: Book) => {
+  if (book) {
+    editBookForm.value = {
+      id: book.id,
+      title: book.title,
+      author: book.author,
+      read: book.read,
+    };
+    activeEditBookModal.value = !activeEditBookModal.value;
+  }
+};
+// 提交按钮
+const handleEditSubmit = () => {
+  const payload = {
+    title: editBookForm.value.title,
+    author: editBookForm.value.author,
+    read: editBookForm.value.read,
+  };
+  updateBook(payload, editBookForm.value.id);
+  activeEditBookModal.value = false;
+};
+
+// 取消按钮
+const handleEditCancel = () => {
+  activeEditBookModal.value = false;
+};
 
 // 更新书籍
 const updateBook = (payload: Payload, bookID: string) => {
@@ -377,9 +404,8 @@ const updateBook = (payload: Payload, bookID: string) => {
     });
 };
 
-
 // -----------处理delbook的逻辑-----------------
-// 切换删除书籍模态框的状态，并将要删的书籍存入editBookForm
+// 打开删除确认框，并把要删除的书籍信息存入editBookForm
 const toggleConfirmDeleteModal = (book: Book) => {
   activeConfirmDeleteModal.value = !activeConfirmDeleteModal.value;
   editBookForm.value = {
@@ -403,34 +429,5 @@ const confirmDelete = (book: Book) => {
       console.error(error);
     });
   activeConfirmDeleteModal.value = false;
-};
-
-
-
-// 处理编辑书籍表单的提交
-const handleEditSubmit = () => {
-  const payload = {
-    title: editBookForm.value.title,
-    author: editBookForm.value.author,
-    read: editBookForm.value.read,
-  };
-  updateBook(payload, editBookForm.value.id);
-  activeEditBookModal.value = false;
-};
-
-const handleEditCancel = () => {
-  activeEditBookModal.value = false;
-};
-
-const toggleEditBookModal = (book: Book) => {
-  if (book) {
-    editBookForm.value = {
-      id: book.id,
-      title: book.title,
-      author: book.author,
-      read: book.read,
-    };
-    activeEditBookModal.value = !activeEditBookModal.value;
-  }
 };
 </script>
