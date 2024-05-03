@@ -32,7 +32,7 @@
               <td>
                 <div class="btn-group" role="group">
                   <button type="button" class="btn btn-warning btn-sm" @click="toggleEditBookModal(book)">Update</button>
-                  <button type="button" class="btn btn-danger btn-sm">Delete</button>
+                  <button type="button" class="btn btn-danger btn-sm" @click="toggleConfirmDeleteModal(book)">Delete</button>
                 </div>
               </td>
             </tr>
@@ -183,6 +183,47 @@
   </div>
 </div>
 <div v-if="activeEditBookModal" class="modal-backdrop fade show"></div>
+<div
+    ref="confirmDeleteModal"
+    class="modal fade"
+    :class="{ show: activeConfirmDeleteModal, 'd-block': activeConfirmDeleteModal }"
+    tabindex="-1"
+    role="dialog">
+    <div class="modal-dialog" role="document">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title">Confirm Delete</h5>
+          <button
+            type="button"
+            class="close"
+            data-dismiss="modal"
+            aria-label="Close"
+            @click="toggleConfirmDeleteModal">
+            <span aria-hidden="true">&times;</span>
+          </button>
+        </div>
+        <div class="modal-body">
+          Are you sure you want to delete "{{ editBookForm.title }}"?
+        </div>
+        <div class="modal-footer">
+          <button
+            type="button"
+            class="btn btn-danger"
+            @click="confirmDelete(editBookForm)">
+            Delete
+          </button>
+          <button
+            type="button"
+            class="btn btn-secondary"
+            data-dismiss="modal"
+            @click="toggleConfirmDeleteModal">
+            Cancel
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div v-if="activeConfirmDeleteModal" class="modal-backdrop fade show"></div>
   </div>
 </template>
 
@@ -191,7 +232,7 @@
 
   
 <script lang="ts" setup>
-import { defineComponent, ref, onMounted } from 'vue';
+import { defineProps, ref, onMounted } from 'vue';
 import useURLLoader from '../hooks/useURLLoader';
 import axios from 'axios';
 import AlertInfo from '../components/AlertInfo.vue';
@@ -223,6 +264,8 @@ interface Payload {
     // 使用ref创建响应式数据
     const activeAddBookModal = ref(false);
     const activeEditBookModal = ref(false);
+    const activeConfirmDeleteModal = ref(false);
+
     const addBookForm = ref({
       title: '',
       author: '',
@@ -280,6 +323,39 @@ interface Payload {
           console.error(error);
         });
     };
+
+    //处理删除书籍
+    const toggleConfirmDeleteModal = (book: Book) => {
+      activeConfirmDeleteModal.value = !activeConfirmDeleteModal.value;
+      editBookForm.value = {
+        id: book.id,
+        title: book.title,
+        author: book.author,
+        read: book.read,
+      };
+    }
+    // 删除书籍
+    const confirmDelete = (book: Book) => {
+      const path = 'http://10.15.101.99:5000/books/'+book.id;
+      axios.delete(path)
+        .then(() => {
+          fetchData();   // 更新书籍后，重新获取数据
+          message.value = 'delete book successfully!';
+          showMessage.value = true;
+          //设置一个3秒的延迟后关闭消息框
+          setTimeout(() => {
+            showMessage.value = false;
+            message.value = '';
+            }, 3000);
+        })
+        .catch((error) => {
+          message.value = error.message;
+          showMessage.value = true;
+          console.error(error);
+        });
+        activeConfirmDeleteModal.value = false;
+    };
+
     // 重置表单数据
     const initForm = () => {
       addBookForm.value = { title: '', author: '', read: false };
